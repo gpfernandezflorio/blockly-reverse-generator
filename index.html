@@ -6,6 +6,7 @@
     <script src="acorn_interpreter.js"></script>
     <script src="blockly/blockly_compressed.js"></script>
     <script src="blockly/blocks_compressed.js"></script>
+    <script src="blockly/javascript_compressed.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <script type="text/javascript" src="bloques.js"></script>
     <script type="text/javascript" src="mapa.js"></script>
@@ -13,10 +14,13 @@
   </head>
   <body>
     <div id="barra_navagacion">
-      <button class="boton" type="button" name="boton_run" onclick="Main.generarBloques();">RUN</button>
+      <button class="boton" type="button" name="boton_generar" onclick="Main.generarBloques();">Generar</button>
+      <button class="boton" type="button" name="boton_ejecutar_input" onclick="Main.ejecutarEntrada();">Ejecutar entrada</button>
+      <button class="boton" type="button" name="boton_ejecutar_output" onclick="Main.ejecutarSalida();">Ejecutar salida</button>
     </div>
     <div class="div_sector" id="area_texto">
       <textarea id="input_usuario" spellcheck="false"></textarea>
+      <textarea id="output_blockly" spellcheck="false" readonly="true"></textarea>
     </div>
     <div class="div_sector" id="area_blockly">
       <div id="blockly"></div>

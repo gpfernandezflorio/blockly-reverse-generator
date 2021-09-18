@@ -2,7 +2,7 @@ Main = {
   blockly : undefined,
   idioma : 'es',
   codigos : {
-    js : 'var resultado = [];\n\
+    js : 'var result = [];\n\
 function fibonacci(n, output) {\n\
   var a = 1, b = 1, sum;\n\
   for (var i = 0; i < n; i++) {\n\
@@ -12,7 +12,8 @@ function fibonacci(n, output) {\n\
     b = sum;\n\
   }\n\
 }\n\
-fibonacci(16, resultado);'
+fibonacci(16, result);\n\
+alert(result.join(\', \'));'
   }
 };
 
@@ -39,6 +40,8 @@ Main.generarBloques = function() {
     return;
   }
   Main.crearBloques(interprete.fa);
+  document.getElementById('output_blockly').innerHTML =
+  Blockly.JavaScript.workspaceToCode(Blockly.mainWorkspace);
 };
 
 Main.crearBloques = function(ast) {
@@ -46,12 +49,15 @@ Main.crearBloques = function(ast) {
   if (Main.blockly) {
     Main.blockly.dispose();
   }
-  Main.blockly = Blockly.inject('blockly', {/*readOnly: true*/});
+  Main.blockly = Blockly.inject('blockly', {readOnly: true});
   Bloques.iniciar();
   let bloques = [];
   // Primero parséo todo
   for (let bloque_top of ast.body) {
-    bloques.push(Bloques.crearXmlBloque(bloque_top));
+    let nuevo_bloque = Bloques.crearXmlBloque(bloque_top);
+    if (nuevo_bloque) {
+      bloques.push(nuevo_bloque);
+    }
   }
   Bloques.finalizar();
   let h = 10;
@@ -96,10 +102,25 @@ Main.redimensionar = function() {
   document.getElementById('area_texto').style.width = `${ancho_codigo}px`;
   document.getElementById('area_blockly').style.height = `${altura}px`;
   document.getElementById('area_blockly').style.width = `${window.innerWidth - ancho_codigo - offset_horizontal}px`;
+
+  const offset_codigo = 10;
+  const porcentaje_input = 40;
+  let porcentaje_output = 100 - porcentaje_input;
+  let altura_input = altura*porcentaje_input/100;
+  document.getElementById('input_usuario').style.height = `${altura_input}px`;
+  document.getElementById('output_blockly').style.height = `${altura - altura_input - 10}px`;
 };
 
 Main.establecerInputUsuario = function(texto) {
   document.getElementById('input_usuario').innerHTML = texto;
+};
+
+Main.ejecutarEntrada = function() {
+  eval(document.getElementById('input_usuario').value);
+};
+
+Main.ejecutarSalida = function() {
+  eval(document.getElementById('output_blockly').value);
 };
 
 // Antes de terminar de cargar la página, llamo a esta función

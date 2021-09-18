@@ -1,17 +1,17 @@
 Bloques = {};
 
 Bloques.crearBloque = function(ast) {
-  let xml = Bloques.crearXmlBloque(ast);
+  let xml = Bloques.crearXmlBloque(ast, {});
   if (xml) {
     return Blockly.Xml.domToBlock(xml, Blockly.mainWorkspace);
   }
   return null;
 };
 
-Bloques.crearXmlBloque = function(ast) {
+Bloques.crearXmlBloque = function(ast, opciones={}) {
   if (ast) {
     if (ast.type in Bloques.mapaBloques) {
-      let xml = Bloques.mapaBloques[ast.type](ast);
+      let xml = Bloques.mapaBloques[ast.type](ast, opciones);
       return xml;
     }
     alert("No sé qué bloque usar para "+ast.type);
@@ -101,6 +101,27 @@ Bloques.esUnString = function(contenido) {
   )
 };
 
+Bloques.registrarFuncion = function(nombre) {
+  if (nombre in Bloques.funcionesYProcedimientos) {
+    Bloques.funcionesYProcedimientos[nombre].tipo = 'funcion';
+  } else {
+    Bloques.funcionesYProcedimientos[nombre] = {
+      parametros: [],
+      tipo: 'funcion'
+    };
+  }
+};
+Bloques.registrarProcedimiento = function(nombre) {
+  if (nombre in Bloques.funcionesYProcedimientos) {
+    Bloques.funcionesYProcedimientos[nombre].tipo = 'procedimiento';
+  } else {
+    Bloques.funcionesYProcedimientos[nombre] = {
+      parametros: [],
+      tipo: 'procedimiento'
+    };
+  }
+};
+
 Bloques.esFuncion = function(ast) {
   if (typeof ast != 'object') { return false; }
   if (ast) {
@@ -123,25 +144,38 @@ Bloques.esFuncion = function(ast) {
 };
 
 Bloques.registrarParametro = function(funcion, parametro) {
-  if (funcion in Bloques.parametros) {
-    Bloques.parametros[funcion].push(parametro);
+  if (funcion in Bloques.funcionesYProcedimientos) {
+    Bloques.funcionesYProcedimientos[funcion].parametros.push(parametro);
   } else {
-    Bloques.parametros[funcion] = [parametro];
+    Bloques.funcionesYProcedimientos[funcion] = {
+      parametros: [parametro],
+      tipo: 'procedimiento'
+    };
   }
 };
 
 Bloques.parametroRegistrado = function(funcion, i) {
-  if (funcion in Bloques.parametros) {
-    if (i < Bloques.parametros[funcion].length) {
-      return Bloques.parametros[funcion][i];
+  if (funcion in Bloques.funcionesYProcedimientos) {
+    if (i < Bloques.funcionesYProcedimientos[funcion].parametros.length) {
+      return Bloques.funcionesYProcedimientos[funcion].parametros[i];
     }
   }
   return null;
 };
 
+Bloques.funcionRegistrada = function(nombre) {
+  return nombre in Bloques.funcionesYProcedimientos &&
+    Bloques.funcionesYProcedimientos[nombre].tipo == 'funcion';
+};
+
+Bloques.procedimientoRegistrado = function(nombre) {
+  return nombre in Bloques.funcionesYProcedimientos &&
+    Bloques.funcionesYProcedimientos[nombre].tipo == 'procedimiento';
+};
+
 Bloques.iniciar = function() {
   Bloques.funcionesAlFinal = [];
-  Bloques.parametros = {};
+  Bloques.funcionesYProcedimientos = {};
 };
 
 Bloques.hacerAlFinal = function(f) {
@@ -153,5 +187,5 @@ Bloques.finalizar = function() {
     f();
   }
   delete Bloques.funcionesAlFinal;
-  delete Bloques.parametros;
+  delete Bloques.funcionesYProcedimientos;
 };
