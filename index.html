@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Reverse generator</title>
+    <script src="acorn_interpreter.js"></script>
+    <script src="blockly/blockly_compressed.js"></script>
+    <script src="blockly/blocks_compressed.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="bloques.js"></script>
+    <script type="text/javascript" src="mapa.js"></script>
+    <link rel="stylesheet" href="style.css" media="screen,projection">
+  </head>
+  <body>
+    <div id="barra_navagacion">
+      <button class="boton" type="button" name="boton_run" onclick="Main.generarBloques();">RUN</button>
+    </div>
+    <div class="div_sector" id="area_texto">
+      <textarea id="input_usuario" spellcheck="false"></textarea>
+    </div>
+    <div class="div_sector" id="area_blockly">
+      <div id="blockly"></div>
+    </div>
+  </body>
+</html>

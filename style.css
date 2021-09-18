@@ -1,0 +1,34 @@
+#barra_navagacion {
+  width: 100%;
+  height: 30px;
+  background-color: #aad;
+}
+
+.div_sector {
+  border: 2px;
+}
+
+#area_texto {
+  float: left;
+  background-color: #daa;
+}
+
+#area_blockly {
+  float: right;
+  background-color: #ada;
+}
+
+#input_usuario {
+  resize: none;
+  width: 100%;
+  height: 100%;
+}
+
+#blockly {
+  width: 100%;
+  height: 100%;
+}
+
+.boton {
+  margin: 5px;
+}
