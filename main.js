@@ -27,10 +27,26 @@ Main.inicializar = function() {
   window.addEventListener('resize', Main.redimensionar, false);   // Al cambiar el tamaño de la pantalla
   Main.establecerInputUsuario(Main.codigos.js);
   Main.redimensionar();
-  //Main.generarBloques();
+  document.getElementById('check_live').addEventListener('change', Main.generarConstante);
+  document.getElementById('input_usuario').addEventListener('keydown', function(e) {
+    if (e.key == 'Tab') {
+      e.preventDefault();
+      var start = this.selectionStart;
+      var end = this.selectionEnd;
+
+      // set textarea value to: text before caret + tab + text after caret
+      this.value = this.value.substring(0, start) +
+        "  " + this.value.substring(end);
+
+      // put caret at right position again
+      this.selectionStart =
+        this.selectionEnd = start + 2;
+    }
+  });
 };
 
 Main.generarBloques = function() {
+  document.getElementById('output_generador').innerHTML = "RESULTADO:"
   let codigo = document.getElementById('input_usuario').value;
   let interprete;
   try {
@@ -76,23 +92,12 @@ Main.bloqueAdicional = function(bloque) {
   Main.bloques.push(bloque);
 };
 
-Main.mapaBloques = {
-  ArrayExpression: {
-    tipoBloque : 'lists_create_with',
-    f : function(bloque, ast) {
-      if ('elements' in ast) {
-        bloque.itemCount_ = ast.elements.length;
-        bloque.updateShape_();
-        for (let i=0; i<ast.elements.length; i++) {
-          let nuevo_bloque = Main.crearBloque(ast.elements[i]);
-          if (nuevo_bloque) {
-            bloque.getInput(`ADD${i}`).connection.connect(nuevo_bloque.outputConnection);
-          }
-        }
-      } else {
-        Main.error("No sé cómo inicializar la lista");
-      }
-    }
+Main.generarConstante = function(e) {
+  Main.generarBloques();
+  if (document.getElementById('check_live').checked) {
+    document.getElementById('input_usuario').addEventListener('input', Main.generarBloques);
+  } else {
+    document.getElementById('input_usuario').removeEventListener('input', Main.generarBloques);
   }
 };
 
@@ -106,6 +111,7 @@ Main.redimensionar = function() {
   document.getElementById('area_texto').style.height = `${altura}px`;
   document.getElementById('area_texto').style.width = `${ancho_codigo}px`;
   document.getElementById('area_blockly').style.height = `${altura}px`;
+  document.getElementById('blockly').style.height = `${altura - document.getElementById('output_generador').offsetHeight}px`;
   document.getElementById('area_blockly').style.width = `${window.innerWidth - ancho_codigo - offset_horizontal}px`;
 
   const offset_codigo = 10;
@@ -132,7 +138,7 @@ Main.ejecutarSalida = function() {
 };
 
 Main.error = function(msg) {
-  console.log("Error: " + msg);
+  document.getElementById('output_generador').innerHTML += '\n' + msg;
 };
 
 // Antes de terminar de cargar la página, llamo a esta función

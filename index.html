@@ -21,6 +21,7 @@
           <span>Entrada:</span>
           <button class="boton" type="button" name="boton_ejecutar_input" onclick="Main.ejecutarEntrada();">Ejecutar</button>
           <button class="boton" type="button" name="boton_generar" onclick="Main.generarBloques();">Generar bloques</button>
+          <input type="checkbox" id="check_live">Generación constante</input>
         </div>
         <textarea id="input_usuario" spellcheck="false"></textarea>
       </div>
@@ -34,6 +35,7 @@
     </div>
     <div class="div_sector" id="area_blockly">
       <div id="blockly"></div>
+      <textarea id="output_generador" spellcheck="false" readonly="true"></textarea>
     </div>
   </body>
 </html>

@@ -34,7 +34,10 @@ textarea {
 
 #blockly {
   width: 100%;
-  height: 100%;
+}
+
+#output_generador {
+  height: 100px;
 }
 
 .boton {
