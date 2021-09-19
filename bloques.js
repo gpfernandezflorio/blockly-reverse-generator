@@ -14,7 +14,7 @@ Bloques.crearXmlBloque = function(ast, opciones={}) {
       let xml = Bloques.mapaBloques[ast.type](ast, opciones);
       return xml;
     }
-    Main.error("No sé qué bloque usar para "+ast.type);
+    Main.error("No sé qué bloque usar para " + ast.type + ": " + Main.codigoEn(ast));
   }
   return null;
 };

@@ -245,6 +245,7 @@ Bloques.mapaBloques.BlockStatement = function(ast, opciones={}) {
 };
 
 Bloques.mapaBloques.Identifier = function(ast, opciones={}) {
+  if (opciones.statement) { return null; }
   let nombre;
   let hijos = [];
   if (ast.name) {

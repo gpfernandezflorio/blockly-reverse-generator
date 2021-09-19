@@ -141,6 +141,10 @@ Main.error = function(msg) {
   document.getElementById('output_generador').innerHTML += '\n' + msg;
 };
 
+Main.codigoEn = function(ast) {
+  return document.getElementById('input_usuario').value.substr(ast.start, ast.end-ast.start);
+};
+
 // Antes de terminar de cargar la página, llamo a esta función
 Main.preCarga();
 
