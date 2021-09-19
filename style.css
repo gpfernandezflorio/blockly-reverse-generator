@@ -18,13 +18,16 @@
   background-color: #ada;
 }
 
-#input_usuario {
-  resize: none;
+#div_input_usuario {
   width: 100%;
 }
 
-#output_blockly {
-  margin-top: -5px;
+#div_output_blockly {
+  margin-top: 5px;
+  width: 100%;
+}
+
+textarea {
   resize: none;
   width: 100%;
 }

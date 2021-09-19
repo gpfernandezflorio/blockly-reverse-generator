@@ -26,7 +26,7 @@ Bloques.mapaBloques.VariableDeclaration = function(ast, opciones={}) {
         campo_nombre.setAttribute('id', Bloques.obtenerIdVariable(nombre));
         hijos.push(campo_nombre);
       } else {
-        alert("No sé cuál es el nombre de la variable");
+        Main.error("No sé cuál es el nombre de la variable");
       }
       if (valor) {
         hijos.push(Bloques.domInput('VALUE', valor));
@@ -38,13 +38,13 @@ Bloques.mapaBloques.VariableDeclaration = function(ast, opciones={}) {
         }
         anterior = nuevo_bloque;
       } else {
-        //alert("No sé cuál es la definición de la variable");
+        //Main.error("No sé cuál es la definición de la variable");
         // ¡No hace falta declararla!
       }
     }
     return primero;
   }
-  alert("No sé qué asignarle a la variable");
+  Main.error("No sé qué asignarle a la variable");
   return Bloques.domBloque('variables_set', []);
 };
 
@@ -71,7 +71,7 @@ Bloques.mapaBloques.Literal = function(ast, opciones={}) {
       if (ast.value != null) {
         Bloques.establecerCampo(campo_valor, 'TEXT', ast.value);
       } else {
-        alert("No sé qué texto asignar");
+        Main.error("No sé qué texto asignar");
       }
     }
   }
@@ -79,7 +79,7 @@ Bloques.mapaBloques.Literal = function(ast, opciones={}) {
     if (ast.value != null) {
       Bloques.establecerCampo(campo_valor, 'NUM', ast.value);
     } else {
-      alert("No sé qué número asignar");
+      Main.error("No sé qué número asignar");
     }
   }
   return Bloques.domBloque(tipo, [campo_valor]);
@@ -93,7 +93,7 @@ Bloques.mapaBloques.ExpressionStatement = function(ast, opciones={}) {
   if (ast.expression) {
     return Bloques.crearXmlBloque(ast.expression, opciones);
   }
-  alert("No sé cómo procesar esta expresión");
+  Main.error("No sé cómo procesar esta expresión");
   return null;
 };
 

@@ -27,7 +27,7 @@ Main.inicializar = function() {
   window.addEventListener('resize', Main.redimensionar, false);   // Al cambiar el tamaño de la pantalla
   Main.establecerInputUsuario(Main.codigos.js);
   Main.redimensionar();
-  Main.generarBloques();
+  //Main.generarBloques();
 };
 
 Main.generarBloques = function() {
@@ -36,7 +36,7 @@ Main.generarBloques = function() {
   try {
     interprete = new Interpreter(codigo, function() {});
   } catch (error) {
-    alert("Código inválido");
+    Main.error("Código inválido");
     return;
   }
   Main.crearBloques(interprete.fa);
@@ -90,7 +90,7 @@ Main.mapaBloques = {
           }
         }
       } else {
-        alert("No sé cómo inicializar la lista");
+        Main.error("No sé cómo inicializar la lista");
       }
     }
   }
@@ -112,8 +112,11 @@ Main.redimensionar = function() {
   const porcentaje_input = 40;
   let porcentaje_output = 100 - porcentaje_input;
   let altura_input = altura*porcentaje_input/100;
-  document.getElementById('input_usuario').style.height = `${altura_input}px`;
-  document.getElementById('output_blockly').style.height = `${altura - altura_input - 10}px`;
+  let altura_output = altura - altura_input - 10;
+  document.getElementById('div_input_usuario').style.height = `${altura_input}px`;
+  document.getElementById('div_output_blockly').style.height = `${altura_output}px`;
+  document.getElementById('input_usuario').style.height = `${altura_input - document.getElementById('barra_navagacion_input').offsetHeight}px`;
+  document.getElementById('output_blockly').style.height = `${altura_output - document.getElementById('barra_navagacion_output').offsetHeight}px`;
 };
 
 Main.establecerInputUsuario = function(texto) {
@@ -126,6 +129,10 @@ Main.ejecutarEntrada = function() {
 
 Main.ejecutarSalida = function() {
   eval(document.getElementById('output_blockly').value);
+};
+
+Main.error = function(msg) {
+  console.log("Error: " + msg);
 };
 
 // Antes de terminar de cargar la página, llamo a esta función

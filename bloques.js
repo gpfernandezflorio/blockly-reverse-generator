@@ -15,7 +15,7 @@ Bloques.crearXmlBloque = function(ast, opciones={}) {
       return xml;
     }
     console.error(ast);
-    alert("No sé qué bloque usar para "+ast.type);
+    Main.error("No sé qué bloque usar para "+ast.type);
   }
   return null;
 };

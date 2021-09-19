@@ -14,13 +14,23 @@
   </head>
   <body>
     <div id="barra_navagacion">
-      <button class="boton" type="button" name="boton_generar" onclick="Main.generarBloques();">Generar</button>
-      <button class="boton" type="button" name="boton_ejecutar_input" onclick="Main.ejecutarEntrada();">Ejecutar entrada</button>
-      <button class="boton" type="button" name="boton_ejecutar_output" onclick="Main.ejecutarSalida();">Ejecutar salida</button>
     </div>
     <div class="div_sector" id="area_texto">
-      <textarea id="input_usuario" spellcheck="false"></textarea>
-      <textarea id="output_blockly" spellcheck="false" readonly="true"></textarea>
+      <div class="div_sector" id="div_input_usuario" title="Ingrese aquí el código fuente para generar bloques">
+        <div id="barra_navagacion_input">
+          <span>Entrada:</span>
+          <button class="boton" type="button" name="boton_ejecutar_input" onclick="Main.ejecutarEntrada();">Ejecutar</button>
+          <button class="boton" type="button" name="boton_generar" onclick="Main.generarBloques();">Generar bloques</button>
+        </div>
+        <textarea id="input_usuario" spellcheck="false"></textarea>
+      </div>
+      <div class="div_sector" id="div_output_blockly" title="Código generado por el generador de Blockly">
+        <div id="barra_navagacion_output">
+          <span>Salida:</span>
+          <button class="boton" type="button" name="boton_ejecutar_output" onclick="Main.ejecutarSalida();">Ejecutar</button>
+        </div>
+        <textarea id="output_blockly" spellcheck="false" readonly="true"></textarea>
+      </div>
     </div>
     <div class="div_sector" id="area_blockly">
       <div id="blockly"></div>
