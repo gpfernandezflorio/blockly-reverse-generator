@@ -1,20 +1,25 @@
 Bloques.mapaBloques = {};
 
 Bloques.mapaBloques.VariableDeclaration = function(ast, opciones={}) {
-  if ('declarations' in ast) {
+  if (ast.declarations) {
     let primero;
     let anterior;
     for (let declaracion of ast.declarations) {
       let nombre;
       let valor;
       let hijos = [];
-      if ('id' in declaracion) {
-        if ('name' in declaracion.id) {
+      if (declaracion.id) {
+        if (declaracion.id.name) {
           nombre = declaracion.id.name;
         }
       }
-      if ('init' in declaracion) {
-        valor = Bloques.crearXmlBloque(declaracion.init, {expresion: true});
+      if (declaracion.init) {
+        if (declaracion.init.type && declaracion.init.type == 'FunctionExpression') {
+          // Entonces es una función.
+          Bloques.procesarFuncionDeclaracion(nombre, declaracion.init);
+        } else {
+          valor = Bloques.crearXmlBloque(declaracion.init, {expresion: true});
+        }
       }
       if (nombre) {
         let campo_nombre = Bloques.domCampo('VAR', nombre);
@@ -45,7 +50,7 @@ Bloques.mapaBloques.VariableDeclaration = function(ast, opciones={}) {
 
 Bloques.mapaBloques.ArrayExpression = function(ast, opciones={}) {
   let hijos = [];
-  if ('elements' in ast) {
+  if (ast.elements) {
     hijos.push(Bloques.domMutador({items: ast.elements.length}, []));
     for (let i=0; i<ast.elements.length; i++) {
       hijos.push(Bloques.domInput(`ADD${i}`, Bloques.crearXmlBloque(ast.elements[i], {expresion: true})));
@@ -57,13 +62,13 @@ Bloques.mapaBloques.ArrayExpression = function(ast, opciones={}) {
 Bloques.mapaBloques.Literal = function(ast, opciones={}) {
   let campo_valor = Blockly.utils.xml.createElement('field');
   let tipo = 'math_number';
-  if ('raw' in ast) {
+  if (ast.raw != null) {
     if (['true','false'].includes(ast.raw)) {
       tipo = 'logic_boolean';
       Bloques.establecerCampo(campo_valor, 'BOOL', ast.raw.toUpperCase());
     } else if (Bloques.esUnString(ast.raw)) {
       tipo = 'text';
-      if ('value' in ast) {
+      if (ast.value != null) {
         Bloques.establecerCampo(campo_valor, 'TEXT', ast.value);
       } else {
         alert("No sé qué texto asignar");
@@ -71,7 +76,7 @@ Bloques.mapaBloques.Literal = function(ast, opciones={}) {
     }
   }
   if (tipo == 'math_number') {
-    if ('value' in ast) {
+    if (ast.value != null) {
       Bloques.establecerCampo(campo_valor, 'NUM', ast.value);
     } else {
       alert("No sé qué número asignar");
@@ -81,47 +86,11 @@ Bloques.mapaBloques.Literal = function(ast, opciones={}) {
 };
 
 Bloques.mapaBloques.FunctionDeclaration = function(ast, opciones={}) {
-  let tipo = 'procedures_defnoreturn';
-  let nombre;
-  let cuerpo;
-  let hijos = [];
-  let parametros = [];
-  if ('id' in ast) {
-    if ('name' in ast.id) {
-      nombre = ast.id.name;
-    }
-  }
-  if ('params' in ast) {
-    for (let parametro of ast.params) {
-      if ('name' in parametro) {
-        Bloques.registrarParametro(nombre, parametro.name);
-        parametros.push(Bloques.domGenerico('arg', parametro.name));
-      }
-    }
-  }
-  if ('body' in ast) {
-    cuerpo = Bloques.crearXmlBloque(ast.body, {statement: true});
-  }
-  if (nombre) {
-    hijos.push(Bloques.domCampo('NAME', nombre));
-    if (Bloques.esFuncion(ast)) {
-      Bloques.registrarFuncion(nombre);
-      tipo = 'procedures_defreturn';
-    } else {
-      Bloques.registrarProcedimiento(nombre);
-    }
-  }
-  if (parametros.length > 0) {
-    hijos.push(Bloques.domMutador({}, parametros));
-  }
-  if (cuerpo) {
-    hijos.push(Bloques.domStatement('STACK', cuerpo));
-  }
-  return Bloques.domBloque(tipo, hijos);
+  return Bloques.procesarFuncion(ast, opciones);
 };
 
 Bloques.mapaBloques.ExpressionStatement = function(ast, opciones={}) {
-  if ('expression' in ast) {
+  if (ast.expression) {
     return Bloques.crearXmlBloque(ast.expression, opciones);
   }
   alert("No sé cómo procesar esta expresión");
@@ -133,20 +102,20 @@ Bloques.mapaBloques.CallExpression = function(ast, opciones={}) {
   let nombre;
   let hijos = [];
   let argumentos = [];
-  if ('callee' in ast) {
+  if (ast.callee) {
     let callee = ast.callee;
-    if ('type' in callee && callee.type !== 'Identifier') {
+    if (callee.type && callee.type !== 'Identifier') {
       // Entonces no es un llamado a una función
       return Bloques.procesarInvocacionCompleja(callee.type, callee, ast);
     }
-    if ('name' in callee) {
+    if (callee.name) {
       nombre = callee.name;
       if (nombre == 'alert') {
         return Bloques.alert(ast);
       }
     }
   }
-  if ('arguments' in ast) {
+  if (ast.arguments) {
     let i=0;
     for (let argumento of ast.arguments) {
       let dom = Bloques.domGenerico('arg', null);
@@ -163,7 +132,7 @@ Bloques.mapaBloques.CallExpression = function(ast, opciones={}) {
     }
   }
   hijos.push(Bloques.domMutador({name: nombre}, argumentos));
-  if ('expresion' in opciones) {
+  if (opciones.expresion) {
     tipo = 'procedures_callreturn';
   }
   let resultado = Bloques.domBloque(tipo, hijos);
@@ -183,13 +152,18 @@ Bloques.mapaBloques.AssignmentExpression = function(ast, opciones={}) {
   let nombre;
   let valor;
   let hijos = [];
-  if ('left' in ast) {
-    if ('name' in ast.left) {
+  if (ast.left) {
+    if (ast.left.name) {
       nombre = ast.left.name;
     }
   }
-  if ('right' in ast) {
-    valor = Bloques.crearXmlBloque(ast.right, {expresion: true});
+  if (ast.right) {
+    if (ast.right.type && ast.right.type == 'FunctionExpression') {
+      // Entonces es una función.
+      Bloques.procesarFuncionDeclaracion(nombre, ast.right);
+    } else {
+      valor = Bloques.crearXmlBloque(ast.right, {expresion: true});
+    }
   }
   if (nombre) {
     let campo_nombre = Bloques.domCampo('VAR', nombre);
@@ -198,10 +172,10 @@ Bloques.mapaBloques.AssignmentExpression = function(ast, opciones={}) {
   }
   if (valor) {
     hijos.push(Bloques.domInput('VALUE', valor));
-  }
-  if ('operator' in ast) {
-    if (ast.operator == '=') {
-      return Bloques.domBloque('variables_set', hijos);
+    if (ast.operator) {
+      if (ast.operator == '=') {
+        return Bloques.domBloque('variables_set', hijos);
+      }
     }
   }
   return null;
@@ -214,17 +188,17 @@ Bloques.mapaBloques.ForStatement = function(ast, opciones={}) {
   let hasta;
   let paso;
   let hijos = [];
-  if ('body' in ast) {
+  if (ast.body) {
     cuerpo = Bloques.crearXmlBloque(ast.body, {statement: true});
   }
-  if ('init' in ast) {
+  if (ast.init) {
     contador = Bloques.obtenerContadorFor(ast.init);
     desde = Bloques.obtenerInicioFor(ast.init);
   }
-  if (contador != null && 'test' in ast) {
+  if (contador != null && ast.test != null) {
     hasta = Bloques.obtenerLimiteFor(ast.test, contador);
   }
-  if (contador != null && 'update' in ast) {
+  if (contador != null && ast.update != null) {
     paso = Bloques.obtenerPasoFor(ast.update, contador);
   }
   if (cuerpo) {
@@ -248,7 +222,7 @@ Bloques.mapaBloques.ForStatement = function(ast, opciones={}) {
 };
 
 Bloques.mapaBloques.BlockStatement = function(ast, opciones={}) {
-  if ('body' in ast) {
+  if (ast.body) {
     let cuerpo = ast.body;
     if (Array.isArray(cuerpo)) {
       let primero;
@@ -267,12 +241,13 @@ Bloques.mapaBloques.BlockStatement = function(ast, opciones={}) {
       return primero;
     }
   }
+  return null;
 };
 
 Bloques.mapaBloques.Identifier = function(ast, opciones={}) {
   let nombre;
   let hijos = [];
-  if ('name' in ast) {
+  if (ast.name) {
     nombre = ast.name;
   }
   if (nombre) {
@@ -301,16 +276,16 @@ Bloques.mapaDeOperadores = {
 };
 
 Bloques.mapaBloques.BinaryExpression = function(ast, opciones={}) {
-  if ('operator' in ast) {
+  if (ast.operator) {
     if (ast.operator in Bloques.mapaDeOperadores) {
       let mapa = Bloques.mapaDeOperadores[ast.operator];
       let opIzquierdo;
       let opDerecho;
       let hijos = [];
-      if ('left' in ast) {
+      if (ast.left) {
         opIzquierdo = ast.left;
       }
-      if ('right' in ast) {
+      if (ast.right) {
         opDerecho = ast.right;
       }
       if (mapa.op) {
@@ -338,7 +313,7 @@ Bloques.mapaBloques.LogicalExpression = Bloques.mapaBloques.BinaryExpression;
 
 Bloques.procesarInvocacionCompleja = function(tipo, callee, ast) {
   if (tipo == "MemberExpression") {
-    if ('object' in callee && 'property' in callee && 'name' in callee.property) {
+    if (callee.object != null && callee.property != null && callee.property.name != null) {
       let objeto = callee.object;
       let propiedad = callee.property.name;
       return Bloques.procesarSeleccionObjeto(objeto, propiedad, ast);
@@ -358,7 +333,7 @@ Bloques.procesarSeleccionObjeto = function(objeto, propiedad, ast) {
     if (bloque_lista) {
       hijos.push(Bloques.domInput('LIST', bloque_lista));
     }
-    if ('arguments' in ast && ast.arguments.length == 1) {
+    if (ast.arguments != null && ast.arguments.length == 1) {
       let bloque_elemento = Bloques.crearXmlBloque(ast.arguments[0], {expresion: true});
       if (bloque_elemento) {
         hijos.push(Bloques.domInput('TO', bloque_elemento));
@@ -372,7 +347,7 @@ Bloques.procesarSeleccionObjeto = function(objeto, propiedad, ast) {
     if (bloque_lista) {
       hijos.push(Bloques.domInput('INPUT', bloque_lista));
     }
-    if ('arguments' in ast && ast.arguments.length == 1) {
+    if (ast.arguments != null && ast.arguments.length == 1) {
       let bloque_elemento = Bloques.crearXmlBloque(ast.arguments[0], {expresion: true});
       if (bloque_elemento) {
         hijos.push(Bloques.domInput('DELIM', bloque_elemento));
@@ -386,18 +361,18 @@ Bloques.procesarSeleccionObjeto = function(objeto, propiedad, ast) {
 };
 
 Bloques.obtenerContadorFor = function(ast) {
-  if ('type' in ast && ast.type == 'VariableDeclaration') {
-    if ('declarations' in ast && ast.declarations.length == 1) {
-      if ('id' in ast.declarations[0]) {
-        if ('name' in ast.declarations[0].id) {
+  if (ast.type != null && ast.type == 'VariableDeclaration') {
+    if (ast.declarations != null && ast.declarations.length == 1) {
+      if (ast.declarations[0].id) {
+        if (ast.declarations[0].id.name) {
           return ast.declarations[0].id.name;
         }
       }
     }
-  } else if ('type' in ast && ast.type == 'AssignmentExpression') {
-    if ('left' in ast) {
-      if ('name' in ast.left) {
-        if ('operator' in ast && ast.operator == '=') {
+  } else if (ast.type != null && ast.type == 'AssignmentExpression') {
+    if (ast.left) {
+      if (ast.left.name) {
+        if (ast.operator != null && ast.operator == '=') {
           return ast.left.name;
         }
       }
@@ -407,15 +382,15 @@ Bloques.obtenerContadorFor = function(ast) {
 };
 
 Bloques.obtenerInicioFor = function(ast) {
-  if ('type' in ast && ast.type == 'VariableDeclaration') {
-    if ('declarations' in ast && ast.declarations.length == 1) {
-      if ('init' in ast.declarations[0]) {
+  if (ast.type != null && ast.type == 'VariableDeclaration') {
+    if (ast.declarations != null && ast.declarations.length == 1) {
+      if (ast.declarations[0].init) {
         return Bloques.crearXmlBloque(ast.declarations[0].init, {expresion: true});
       }
     }
-  } else if ('type' in ast && ast.type == 'AssignmentExpression') {
-    if ('right' in ast) {
-      if ('operator' in ast && ast.operator == '=') {
+  } else if (ast.type != null && ast.type == 'AssignmentExpression') {
+    if (ast.right) {
+      if (ast.operator != null && ast.operator == '=') {
         return Bloques.crearXmlBloque(ast.right, {expresion: true});
       }
     }
@@ -424,11 +399,11 @@ Bloques.obtenerInicioFor = function(ast) {
 };
 
 Bloques.obtenerLimiteFor = function(ast, i) {
-  if ('type' in ast && ast.type == 'BinaryExpression') {
-    if ('left' in ast && 'name' in ast.left && ast.left.name == i) {
-      if ('right' in ast) {
+  if (ast.type != null && ast.type == 'BinaryExpression') {
+    if (ast.left != null && ast.left.name != null && ast.left.name == i) {
+      if (ast.right) {
         let bloque_limite = Bloques.crearXmlBloque(ast.right, {expresion: true});
-        if ('operator' in ast) {
+        if (ast.operator) {
           if (ast.operator == '<=') {
             return bloque_limite;
           } else if (ast.operator == '<') {
@@ -448,9 +423,9 @@ Bloques.obtenerLimiteFor = function(ast, i) {
 };
 
 Bloques.obtenerPasoFor = function(ast, i) {
-  if ('type' in ast && ast.type == 'UpdateExpression') {
-    if ('argument' in ast && 'name' in ast.argument && ast.argument.name == i) {
-      if ('operator' in ast) {
+  if (ast.type != null && ast.type == 'UpdateExpression') {
+    if (ast.argument != null && ast.argument.name != null && ast.argument.name == i) {
+      if (ast.operator) {
         if (ast.operator == '++') {
           return Bloques.domBloque('math_number', [
             Bloques.domCampo('NUM', '1'),
@@ -469,11 +444,77 @@ Bloques.obtenerPasoFor = function(ast, i) {
 Bloques.alert = function(ast) {
   let argumento;
   let hijos = [];
-  if ('arguments' in ast && ast.arguments.length == 1) {
+  if (ast.arguments != null && ast.arguments.length == 1) {
     argumento = Bloques.crearXmlBloque(ast.arguments[0], {expresion: true});
   }
   if (argumento) {
     hijos.push(Bloques.domInput('TEXT', argumento));
   }
   return Bloques.domBloque('text_print', hijos);
+};
+
+Bloques.procesarFuncionDeclaracion = function(nombre, ast, opciones={}) {
+  ast.id = {name: nombre};
+  let definicion = Bloques.procesarFuncion(ast, opciones);
+  // La agrego al final porque puedo estar en medio de un bloque
+  Bloques.hacerAlFinal(function() {
+    Main.bloqueAdicional(definicion);
+  });
+};
+
+Bloques.procesarFuncion = function(ast, opciones={}) {
+  let tipo = 'procedures_defnoreturn';
+  let nombre;
+  let cuerpo;
+  let hijos = [];
+  let parametros = [];
+  if (ast.id) {
+    if (ast.id.name) {
+      nombre = ast.id.name;
+    }
+  }
+  if (ast.params) {
+    for (let parametro of ast.params) {
+      if (parametro.name) {
+        Bloques.registrarParametro(nombre, parametro.name);
+        parametros.push(Bloques.domGenerico('arg', parametro.name));
+      }
+    }
+  }
+  if (ast.body) {
+    if (Bloques.esFuncion(ast.body)) {
+      let lista_comandos = ast.body.body;
+      if (Bloques.esFuncionSimple(lista_comandos)) {
+        let cuerpo_interno = {type: 'BlockStatement', body: lista_comandos.slice(0,-1)};
+        cuerpo = Bloques.crearXmlBloque(cuerpo_interno, {statement: true});
+        let ultimo = lista_comandos[lista_comandos.length-1];
+        if (ultimo != null && ultimo.type != null && ultimo.type == 'ReturnStatement' && ultimo.argument != null) {
+          let bloque_return = Bloques.crearXmlBloque(ultimo.argument, {expresion: true});
+          if (bloque_return) {
+            hijos.push(Bloques.domInput('RETURN', bloque_return));
+          }
+        }
+      } else {
+
+      }
+    } else {
+      cuerpo = Bloques.crearXmlBloque(ast.body, {statement: true});
+    }
+  }
+  if (nombre) {
+    hijos.push(Bloques.domCampo('NAME', nombre));
+    if (Bloques.esFuncion(ast)) {
+      Bloques.registrarFuncion(nombre);
+      tipo = 'procedures_defreturn';
+    } else {
+      Bloques.registrarProcedimiento(nombre);
+    }
+  }
+  if (parametros.length > 0) {
+    hijos.push(Bloques.domMutador({}, parametros));
+  }
+  if (cuerpo) {
+    hijos.push(Bloques.domStatement('STACK', cuerpo));
+  }
+  return Bloques.domBloque(tipo, hijos);
 };

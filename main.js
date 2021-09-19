@@ -51,24 +51,29 @@ Main.crearBloques = function(ast) {
   }
   Main.blockly = Blockly.inject('blockly', {readOnly: true});
   Bloques.iniciar();
-  let bloques = [];
+  Main.bloques = [];
   // Primero parséo todo
   for (let bloque_top of ast.body) {
     let nuevo_bloque = Bloques.crearXmlBloque(bloque_top);
     if (nuevo_bloque) {
-      bloques.push(nuevo_bloque);
+      Main.bloques.push(nuevo_bloque);
     }
   }
   Bloques.finalizar();
   let h = 10;
   // Ahora sí, creo los bloques
-  for (let bloque of bloques) {
+  for (let bloque of Main.bloques) {
     let nuevo_bloque = Blockly.Xml.domToBlock(bloque, Blockly.mainWorkspace);
     if (nuevo_bloque) {
       nuevo_bloque.moveTo({x:10, y:h});
       h = 10 + nuevo_bloque.getBoundingRectangle().bottom;
     }
   }
+  delete Main.bloques;
+};
+
+Main.bloqueAdicional = function(bloque) {
+  Main.bloques.push(bloque);
 };
 
 Main.mapaBloques = {

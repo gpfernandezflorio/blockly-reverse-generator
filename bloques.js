@@ -9,11 +9,12 @@ Bloques.crearBloque = function(ast) {
 };
 
 Bloques.crearXmlBloque = function(ast, opciones={}) {
-  if (ast) {
-    if (ast.type in Bloques.mapaBloques) {
+  if (ast != null) {
+    if (ast.type != null && ast.type in Bloques.mapaBloques) {
       let xml = Bloques.mapaBloques[ast.type](ast, opciones);
       return xml;
     }
+    console.error(ast);
     alert("No sé qué bloque usar para "+ast.type);
   }
   return null;
@@ -122,10 +123,17 @@ Bloques.registrarProcedimiento = function(nombre) {
   }
 };
 
+Bloques.esFuncionSimple = function(lista_comandos) {
+  if (lista_comandos.length == 0) { return true; }
+  let ultimo = lista_comandos[lista_comandos.length-1];
+  if (ultimo.type != null && ultimo.type != 'ReturnStatement') { return false; }
+  return !Bloques.esFuncion(lista_comandos.slice(0, -1));
+};
+
 Bloques.esFuncion = function(ast) {
   if (typeof ast != 'object') { return false; }
   if (ast) {
-    if ('type' in ast && ast.type == 'ReturnStatement') {
+    if (ast.type != null && ast.type == 'ReturnStatement') {
       return true;
     }
     for (let k in ast) {
